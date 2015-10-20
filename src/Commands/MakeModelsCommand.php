@@ -167,9 +167,37 @@ class MakeModelsCommand extends GeneratorCommand
     protected function replaceTokens($name, $table)
     {
         $class = $this->buildClass($name);
+        $className = str_replace($this->getNamespace($name).'\\', '', $name);
 
         $properties = $this->getTableProperties($table);
 
+        $docblock = '/**
+ * ' . $name . '
+ *';
+
+        foreach ($properties['types'] as $name => $type) {
+            $docblock .= "
+ * @property {$type} \$$name";
+        }
+
+        foreach ($properties['types'] as $name => $type) {
+            $str = preg_replace('/[^a-z0-9]+/i', ' ', $name);
+            $str = trim($str);
+            // uppercase the first character of each word
+            $str = ucwords($str);
+            $str = str_replace(" ", "", $str);
+            $str = ucfirst($str);
+
+            $method = 'where' . $str;
+
+            $docblock .= "
+ * @method static Builder|{$className} {$method}(\$value)";
+        }
+
+        $docblock .= '
+ */';
+
+        $class = str_replace('{{docblock}}', $docblock, $class);
         $class = str_replace('{{extends}}', $this->option('extends'), $class);
         $class = str_replace('{{table}}', "'" . $table . "'", $class);
         $class = str_replace('{{fillable}}', VariableConversion::convertArrayToString($properties['fillable']), $class);
@@ -222,6 +250,7 @@ class MakeModelsCommand extends GeneratorCommand
      */
     protected function getTableProperties($table)
     {
+        $types = [];
         $fillable = [];
         $guarded = [];
         $timestamps = false;
@@ -243,9 +272,55 @@ class MakeModelsCommand extends GeneratorCommand
             if ($this->ruleProcessor->check($this->option('timestamps'), $column->name)) {
                 $timestamps = true;
             }
+
+            if (in_array($column->name, ['created_at', 'updated_at', 'deleted_at']))
+                $type = '\Carbon\Carbon';
+            else
+                switch ($column->type) {
+                    case 'char':
+                    case 'date':
+                    case 'datetime':
+                    case 'enum':
+                    case 'longtext':
+                    case 'mediumtext':
+                    case 'set':
+                    case 'text':
+                    case 'time':
+                    case 'timestamp':
+                    case 'tinytext':
+                    case 'varchar':
+                        $type = 'string';
+                        break;
+                    case 'bigint':
+                    case 'bit':
+                    case 'int':
+                    case 'mediumint':
+                    case 'smallint':
+                    case 'tinyint':
+                    case 'year':
+                        $type = 'integer';
+                        break;
+                    case 'decimal':
+                    case 'double':
+                    case 'float':
+                    case 'numeric':
+                    case 'real':
+                        $type = 'float';
+                        break;
+                    case 'bool':
+                    case 'boolean':
+                        $type = 'boolean';
+                        break;
+                    default:
+                        $type = 'mixed';
+                        break;
+                }
+            if ($column->null == 'YES')
+                $type = 'null|' . $type;
+            $types[$column->name] = $type;
         }
 
-        return ['fillable' => $fillable, 'guarded' => $guarded, 'timestamps' => $timestamps];
+        return ['fillable' => $fillable, 'guarded' => $guarded, 'timestamps' => $timestamps, 'types' => $types];
     }
 
     /**
@@ -257,7 +332,7 @@ class MakeModelsCommand extends GeneratorCommand
      */
     protected function getTableColumns($table)
     {
-        $columns = \DB::select("SELECT COLUMN_NAME as `name` FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = '{$table}'");
+        $columns = \DB::select("SELECT COLUMN_NAME AS `name`, IS_NULLABLE AS `null`, DATA_TYPE AS `type` FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = '{$table}'");
 
         return $columns;
     }
