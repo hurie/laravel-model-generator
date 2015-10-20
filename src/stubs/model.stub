@@ -1,9 +1,11 @@
-<?php namespace {{namespace}};
+<?php
+
+namespace {{namespace}};
 
 use Illuminate\Database\Eloquent\Model;
 
-class {{class}} extends {{extends}} {
-
+class {{class}} extends {{extends}}
+{
     public $timestamps = {{timestamps}};
 
     protected $fillable = {{fillable}};
