@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class {{class}} extends {{extends}}
 {
+    protected $table = {{table}};
+
     public $timestamps = {{timestamps}};
 
     protected $fillable = {{fillable}};
