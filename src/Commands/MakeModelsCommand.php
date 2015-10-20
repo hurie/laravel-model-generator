@@ -171,9 +171,9 @@ class MakeModelsCommand extends GeneratorCommand
         $properties = $this->getTableProperties($table);
 
         $class = str_replace('{{extends}}', $this->option('extends'), $class);
-        $class = str_replace('{{fillable}}', 'protected $fillable = ' . VariableConversion::convertArrayToString($properties['fillable']) . ';', $class);
-        $class = str_replace('{{guarded}}', 'protected $guarded = ' . VariableConversion::convertArrayToString($properties['guarded']) . ';', $class);
-        $class = str_replace('{{timestamps}}', 'public $timestamps = ' . VariableConversion::convertBooleanToString($properties['timestamps']) . ';', $class);
+        $class = str_replace('{{fillable}}', VariableConversion::convertArrayToString($properties['fillable']), $class);
+        $class = str_replace('{{guarded}}', VariableConversion::convertArrayToString($properties['guarded']), $class);
+        $class = str_replace('{{timestamps}}', VariableConversion::convertBooleanToString($properties['timestamps']), $class);
 
         if ($this->option("getset")) {
             $class = $this->replaceTokensWithSetGetFunctions($properties, $class);

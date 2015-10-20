@@ -4,11 +4,11 @@ use Illuminate\Database\Eloquent\Model;
 
 class {{class}} extends {{extends}} {
 
-    {{timestamps}}
+    public $timestamps = {{timestamps}};
 
-    {{fillable}}
+    protected $fillable = {{fillable}};
 
-    {{guarded}}
+    protected $guarded = {{guarded}};
 
     {{getters}}
 
