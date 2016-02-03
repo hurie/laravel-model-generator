@@ -180,6 +180,9 @@ class MakeModelsCommand extends GeneratorCommand
  * @property {$type} \$$name";
         }
 
+        $docblock .= '
+ *';
+
         foreach ($properties['types'] as $name => $type) {
             $str = preg_replace('/[^a-z0-9]+/i', ' ', $name);
             $str = trim($str);
@@ -194,8 +197,17 @@ class MakeModelsCommand extends GeneratorCommand
  * @method static Builder|{$className} {$method}(\$value)";
         }
 
-        $docblock .= '
- */';
+        $docblock .= "
+ *
+ * @method static Collection|{$className}[]     all(\$columns = ['*'])
+ * @method static Collection|{$className}|null  find(\$id, \$columns = ['*'])
+ * @method static Collection|{$className}       findOrNew(\$id, \$columns = ['*'])
+ * @method static Collection|{$className}[]     findMany(\$ids, \$columns = ['*'])
+ * @method static Collection|{$className}       findOrFail(\$id, \$columns = ['*'])
+ * @method static Collection|{$className}|null  first(\$columns = ['*'])
+ * @method static Collection|{$className}       firstOrFail(\$columns = ['*'])
+ * @method static Collection|{$className}[]     get(\$columns = ['*'])
+ */";
 
         $class = str_replace('{{docblock}}', $docblock, $class);
         $class = str_replace('{{extends}}', $this->option('extends'), $class);
