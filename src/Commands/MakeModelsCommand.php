@@ -200,6 +200,7 @@ class MakeModelsCommand extends GeneratorCommand
         $class = str_replace('{{docblock}}', $docblock, $class);
         $class = str_replace('{{extends}}', $this->option('extends'), $class);
         $class = str_replace('{{table}}', "'" . $table . "'", $class);
+        $class = str_replace('{{primary}}', "'" . $properties['key'] . "'", $class);
         $class = str_replace('{{fillable}}', VariableConversion::convertArrayToString($properties['fillable']), $class);
         $class = str_replace('{{guarded}}', VariableConversion::convertArrayToString($properties['guarded']), $class);
         $class = str_replace('{{timestamps}}', VariableConversion::convertBooleanToString($properties['timestamps']), $class);
@@ -250,6 +251,7 @@ class MakeModelsCommand extends GeneratorCommand
      */
     protected function getTableProperties($table)
     {
+        $key = 'id';
         $types = [];
         $fillable = [];
         $guarded = [];
@@ -271,6 +273,9 @@ class MakeModelsCommand extends GeneratorCommand
             //check if this model is timestampable
             if ($this->ruleProcessor->check($this->option('timestamps'), $column->name)) {
                 $timestamps = true;
+            }
+            if ($column->key == 'PRI') {
+                $key = $column->name;
             }
 
             if (in_array($column->name, ['created_at', 'updated_at', 'deleted_at']))
@@ -320,7 +325,7 @@ class MakeModelsCommand extends GeneratorCommand
             $types[$column->name] = $type;
         }
 
-        return ['fillable' => $fillable, 'guarded' => $guarded, 'timestamps' => $timestamps, 'types' => $types];
+        return ['key' => $key, 'fillable' => $fillable, 'guarded' => $guarded, 'timestamps' => $timestamps, 'types' => $types];
     }
 
     /**
@@ -332,7 +337,7 @@ class MakeModelsCommand extends GeneratorCommand
      */
     protected function getTableColumns($table)
     {
-        $columns = \DB::select("SELECT COLUMN_NAME AS `name`, IS_NULLABLE AS `null`, DATA_TYPE AS `type` FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = '{$table}'");
+        $columns = \DB::select("SELECT COLUMN_NAME AS `name`, COLUMN_KEY AS `key`, IS_NULLABLE AS `null`, DATA_TYPE AS `type` FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = '{$table}'");
 
         return $columns;
     }

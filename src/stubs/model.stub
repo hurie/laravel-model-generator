@@ -17,6 +17,13 @@ class DummyClass extends {{extends}}
     protected $table = {{table}};
 
     /**
+     * The primary key for the model.
+     *
+     * @var string
+     */
+    protected $primaryKey = {{primary}};
+
+    /**
      * Indicates if the model should be timestamped.
      *
      * @var bool
